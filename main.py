@@ -8,4 +8,4 @@ def mainloop(delay: float):
     speak_engine = speak.init()
 
     if __name__ == '__main__':
-    mainloop(0.1)
+        mainloop(0.1)
