@@ -5,7 +5,7 @@ from threading import Thread
 import pyttsx3
 
 
-class SpeechClient():
+class SpeechClient:
     engine: pyttsx3.Engine
     _speech_queue: deque[str] = deque()
     _speech_task = None
@@ -45,7 +45,11 @@ async def main():
     my_engine.queue_text('fuck this shit im out')
     my_engine.queue_text('thats whats up')
     my_engine.queue_text('the only way is through')
-    await my_engine.start_speaking()
+    try:
+        await my_engine.start_speaking()
+    except KeyboardInterrupt:
+        await my_engine.stop_speaking()
+        return
 
 
 if __name__ == '__main__':
