@@ -1,5 +1,5 @@
 import pyttsx3
-import multiprocessing
+import multiprocess
 import queue
 
 def speech_digester_loop(sayQ):
@@ -15,6 +15,7 @@ def speech_digester_loop(sayQ):
     engine.connect('finished-utterance', on_end)
     local_queue = []
     while True:
+        next_utterance = None
         try:
             next_utterance=sayQ.get(False)
         except queue.Empty:
@@ -46,9 +47,9 @@ def all_text_complete():
 
 def start_engine():
     global sayQ
-    multiprocessing.freeze_support()
-    sayQ = multiprocessing.Queue()
-    speech_thread = multiprocessing.Process(target=speech_digester_loop,args=(sayQ,))
+    multiprocess.freeze_support()
+    sayQ = multiprocess.Queue()
+    speech_thread = multiprocess.Process(target=speech_digester_loop,args=(sayQ,))
     speech_thread.start()
 
 if __name__=="__main__":
