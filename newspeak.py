@@ -15,6 +15,7 @@ def speech_digester_loop(sayQ):
     engine.connect('finished-utterance', on_end)
     local_queue = []
     while True:
+        next_utterance = None
         try:
             next_utterance=sayQ.get(False)
         except queue.Empty:
