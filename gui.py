@@ -24,7 +24,7 @@ class App(customtkinter.CTk):
 
         self.welcome_label = customtkinter.CTkLabel(self, text="Welcome" )
         self .welcome_label.grid(row=0, column=0, columnspan=1)
-        self.set_reading_status_ui()
+        self.button = customtkinter.CTkButton(self, text="Start Reading", command=self.start_stop_button)
         self.button.grid(row=1, column=0)
 
         self.speaking_controls_frame = customtkinter.CTkFrame(self)
@@ -34,21 +34,16 @@ class App(customtkinter.CTk):
         self.volume_slider = customtkinter.CTkSlider(self.speaking_controls_frame, from_=0, to=100)
         self.volume_slider.grid(row=1, column=1)
 
-        #todo delay
+    # app takes time to load
 
-    def start_button(self):
-        self.ocr_engine.start()
-        self.reading_status = True
-        self.set_reading_status_ui()
-
-    def stop_button(self):
-        self.ocr_engine.stop()
-        self.reading_status = False
-        self.set_reading_status_ui()
-
-    def set_reading_status_ui(self):
+    def start_stop_button(self):
         if self.reading_status:
-            self.button = customtkinter.CTkButton(self, text="Stop Reading", command=self.stop_button)
+            self.ocr_engine.stop()
+            self.reading_status = False
+            self.button.configure(text="Start Reading")
         else:
-            self.button = customtkinter.CTkButton(self, text="Start Reading", command=self.start_button)
+            self.ocr_engine.start()
+            self.reading_status = True
+            self.button.configure(text="Stop Reading")
+
 
