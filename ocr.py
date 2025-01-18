@@ -120,7 +120,6 @@ class OCR:
 
                 if text != lasttext and text != "" and text is not None:
                     lasttext = text
-                    print(f'"{text}"')
                     self._queue.append(self._cleanup_text(text))
             else:
                 lasttext = None
@@ -152,3 +151,17 @@ class OCR:
         """
         self.stop()
         self.start(force=True)
+
+
+if __name__ == '__main__':
+    """
+    Run a demo, printing text as it appears in the queue.
+    """
+    queue = deque()
+    ocr = OCR(queue, poll_time=0.1)
+    ocr.start()
+    while True:
+        if queue:
+            print(queue.popleft())
+        time.sleep(0.1)
+    
