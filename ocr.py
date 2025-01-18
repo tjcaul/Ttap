@@ -1,12 +1,10 @@
+from typing import Optional
+
 from PIL import ImageGrab, Image
 from pytesseract import pytesseract
-from random import randint
 from collections import deque
-import asyncio
 import time
 from threading import Thread, Event
-
-import newspeak
 
 """
 Class that runs an OCR process in the background, adding each unique string it finds to the queue.
@@ -15,7 +13,7 @@ class OCR:
     SCROLLBAR_COLOURS = [(234, 51, 35), (212, 212, 212), (128, 128, 128)]
     BACKGROUND_COLOUR = (0, 0, 0)
 
-    _thread: Thread
+    _thread: Optional[Thread]
     _queue: deque
     _poll_time: float
     _kill_flag: Event
@@ -23,14 +21,15 @@ class OCR:
     def __init__(self, queue, poll_time) -> None:
         """
         Initialize the OCR system to write into the given queue. The screen will be captured every
-        poll_time seconds; too slow and it'll miss subtitles, too fast and it'll lag the system.
+        poll_time seconds. Too slow, and it'll miss subtitles; too fast, and it'll lag the system.
         """
         self._queue = queue
         self._poll_time = poll_time
         self._thread = None
         self._kill_flag = Event()
 
-    def _colour_close(self, a: tuple[int, int, int], b: tuple[int, int, int], radius: int):
+    @staticmethod
+    def _colour_close(a: tuple[int, int, int], b: tuple[int, int, int], radius: int):
         """
         Return whether two colours are within the given radius when interpreted as 3D vectors.
         """
@@ -42,7 +41,7 @@ class OCR:
         Crop the image to contain only subtitles.
         """
         # first refinement: crop to a fixed box
-        image = image.crop((500, 1300, 2880-500, 1800-150));
+        image = image.crop((500, 1300, 2880-500, 1800-150))
 
         # find scroll / progress bar if it exists
         x = image.width // 2
@@ -53,7 +52,8 @@ class OCR:
                 return image.crop((0, 0, image.width - 1, y - 1))
         return image  # no further cropping needed
 
-    def _brightness(self, colour: tuple[int, int, int, int]) -> int:
+    @staticmethod
+    def _brightness(colour: tuple[int, ...]) -> int:
         """
         Compute a simple notion of the brightness of a pixel: the average of its channels.
         """
@@ -63,9 +63,11 @@ class OCR:
         """
         Return the maximum brightness of any pixel in the image.
         """
-        return max(self._brightness(image.getpixel((x, y))) for x in range(0, image.width, 10) for y in range(0, image.height, 10))
+        extrema = image.getextrema()
+        return self._brightness(tuple(int(band[1]) for band in extrema))
 
-    def _get_text(self, image: Image) -> str:
+    @staticmethod
+    def _get_text(image: Image) -> str:
         """
         Extract text from a cropped image.
         """
@@ -95,7 +97,8 @@ class OCR:
             return brightest_image
         return None
 
-    def _cleanup_text(self, text: str) -> str:
+    @staticmethod
+    def _cleanup_text(text: str) -> str:
         """
         Apply substitutions to text to correct common OCR mistakes.
         """
@@ -106,7 +109,7 @@ class OCR:
         Continuously OCR the screen. When the subtitles change, enqueue the new subtitle text.
         Terminates when self._kill_flag gets set to allow for graceful shutdown.
         """
-        lasttext = ""
+        last_text = ""
 
         while not self._kill_flag.is_set():
             # capture two images to allow for subtitles to fully appear / disappear
@@ -122,11 +125,11 @@ class OCR:
             if image:
                 text = self._get_text(image)
 
-                if text != lasttext and text != "" and text is not None:
-                    lasttext = text
+                if text != last_text and text != "" and text is not None:
+                    last_text = text
                     self._queue.append(self._cleanup_text(text))
             else:
-                lasttext = None
+                last_text = None
 
             time.sleep(self._poll_time)
 
@@ -157,7 +160,7 @@ class OCR:
         self.start(force=True)
 
 
-def demo(maxlines: int = 0):
+def demo(max_lines: int = 0):
     """
     Run a demo, printing text as it appears in the queue.
     Can optionally stop after reading a certain number of lines of text.
@@ -165,13 +168,12 @@ def demo(maxlines: int = 0):
     queue = deque()
     ocr = OCR(queue, poll_time=0.1)
     ocr.start()
-    newspeak.start_engine()
+    #newspeak.start_engine()
 
     lines = 0
-    while maxlines <= 0 or lines < maxlines:
+    while max_lines <= 0 or lines < max_lines:
         if queue:
-            # print(queue.popleft())
-            newspeak.output_text(queue.popleft(), True)
+            print(queue.popleft())
             lines += 1
         time.sleep(0.1)
 
