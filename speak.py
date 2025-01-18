@@ -1,7 +1,7 @@
 import asyncio
 import time
 from collections import deque
-from multiprocessing import Process
+from threading import Thread
 
 import pyttsx3
 
@@ -17,7 +17,7 @@ class SpeechClient:
         self.engine.setProperty('rate', 130)
         self._speech_queue = speech_queue
 
-        process = Process(target=self._process_queue)
+        process = Thread(target=self._process_queue)
         process.start()
 
     def queue_text(self, text: str):
