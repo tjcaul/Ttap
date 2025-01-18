@@ -1,7 +1,7 @@
 import asyncio
 import time
 from collections import deque
-from threading import Thread
+from multiprocessing import Process
 
 import pyttsx3
 
@@ -15,22 +15,23 @@ class SpeechClient:
     def __init__(self, speech_queue: deque[str]):
         self.engine = pyttsx3.init()
         self.engine.setProperty('rate', 130)
-        thread = Thread(target=self._process_queue)
         self._speech_queue = speech_queue
-        thread.start()
+
+        process = Process(target=self._process_queue)
+        process.start()
 
     def queue_text(self, text: str):
         self._speech_queue.append(text)
 
     def _speak(self, text: str) -> None:
+        print(text)
         self.engine.say(text)
-        self._current_speaking_thread = Thread(target=self.engine.runAndWait)
-        return self._current_speaking_thread.start()
+        self.engine.runAndWait()
 
     def _process_queue(self):
         while True:
-            print(self.engine.isBusy())
-            if self._speech_queue and not (self._current_speaking_thread and self._current_speaking_thread.is_alive()):
+            print(self.engine.isBusy(), self._speech_queue)
+            if self._speech_queue:
                 self._speak(self._speech_queue.popleft())
             time.sleep(0.5)
 
@@ -39,7 +40,6 @@ async def main():
     my_engine.queue_text('fuck this shit im out')
     my_engine.queue_text('thats whats up')
     my_engine.queue_text('the only way is through')
-
 
 if __name__ == '__main__':
     asyncio.run(main())
