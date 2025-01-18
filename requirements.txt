@@ -2,4 +2,6 @@ pillow~=11.1.0
 pytesseract~=0.3.13
 pyttsx3~=2.98
 
+multiprocess
+
 customtkinter~=5.2.2
