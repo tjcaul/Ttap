@@ -16,8 +16,8 @@ def mainloop(delay: float):
 
         if text != lasttext:
             lasttext = text
-            print(text)
-            speak.speak(speak_engine, text)
+            print(f'"{text}"')
+            #speak.speak(speak_engine, text)
 
         time.sleep(delay)
 

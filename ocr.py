@@ -1,5 +1,6 @@
 from PIL import ImageGrab, Image
 from pytesseract import pytesseract
+from random import randint
 
 SCROLLBAR_COLOURS = [(234, 51, 35), (212, 212, 212), (128, 128, 128)]
 
@@ -14,14 +15,13 @@ def smart_crop(image: Image) -> str:
     x = image.width // 2
     for y in range(image.height):
         colour = image.getpixel((x, y))
-        if any(colour_close(colour, scrollbar_colour, 10) for scrollbar_colour in SCROLLBAR_COLOURS):
+        if any(colour_close(colour, scrollbar_colour, 3) for scrollbar_colour in SCROLLBAR_COLOURS):
             return image.crop((0, 0, image.width - 1, y - 1))
     return image  # no cropping needed
 
-
 def get_text(image: Image) -> str:
     image = smart_crop(image)
-    text = pytesseract.image_to_string(image)
-    path = "ss/" + text.replace('.', '_').replace('/', '_') + ".png"
-    print(path)
+    text = pytesseract.image_to_string(image).strip()
+    path = f"ss/{randint(0, 1000000)}.png"
     image.save(path)
+    return text
