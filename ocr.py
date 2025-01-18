@@ -68,8 +68,10 @@ class OCR:
         Extract text from a cropped image.
         """
         text = pytesseract.image_to_string(image).strip()
-        path = f"ss/{randint(0, 1000000)}.png"
-        image.save(path)
+
+        # save image to file for debugging
+        # path = f"ss/{randint(0, 1000000)}.png"
+        # image.save(path)
         return text
 
     def _choose_best_image(self, images: list[Image]) -> Image:
@@ -153,15 +155,21 @@ class OCR:
         self.start(force=True)
 
 
-if __name__ == '__main__':
+def demo(maxlines: int = 0):
     """
     Run a demo, printing text as it appears in the queue.
+    Can optionally stop after reading a certain number of lines of text.
     """
     queue = deque()
     ocr = OCR(queue, poll_time=0.1)
     ocr.start()
-    while True:
+
+    lines = 0
+    while maxlines <= 0 or lines < maxlines:
         if queue:
             print(queue.popleft())
+            lines += 1
         time.sleep(0.1)
-    
+
+if __name__ == '__main__':
+    demo(5)
