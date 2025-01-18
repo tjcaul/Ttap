@@ -6,6 +6,8 @@ import asyncio
 import time
 from threading import Thread, Event
 
+import newspeak
+
 """
 Class that runs an OCR process in the background, adding each unique string it finds to the queue.
 """
@@ -163,11 +165,13 @@ def demo(maxlines: int = 0):
     queue = deque()
     ocr = OCR(queue, poll_time=0.1)
     ocr.start()
+    newspeak.start_engine()
 
     lines = 0
     while maxlines <= 0 or lines < maxlines:
         if queue:
-            print(queue.popleft())
+            # print(queue.popleft())
+            newspeak.output_text(queue.popleft(), True)
             lines += 1
         time.sleep(0.1)
 
