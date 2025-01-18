@@ -1,13 +1,22 @@
-from termios import OCRNL
-
 import customtkinter
-import ocr
+from ocr import OCR
+from speak import SpeechClient
 
-customtkinter.set_default_color_theme("dark-blue")
 
 class App(customtkinter.CTk):
-    def __init__(self):
+    reading_status: bool
+    ocr_engine: OCR
+    speech_engine: SpeechClient
+
+
+    def __init__(self, ocr_engine: OCR, speech_engine: SpeechClient) -> None:
         super().__init__()
+        self.button = None
+        customtkinter.set_default_color_theme("dark-blue")
+        self.ocr_engine = ocr_engine
+        self.speech_engine = speech_engine
+        self.reading_status = False
+
 
         self.title("TTSS")
         self.geometry("400x150")
@@ -15,7 +24,7 @@ class App(customtkinter.CTk):
 
         self.welcome_label = customtkinter.CTkLabel(self, text="Welcome" )
         self .welcome_label.grid(row=0, column=0, columnspan=1)
-        self.button = customtkinter.CTkButton(self, text="Start Reading", command=self.start_button)
+        self.set_reading_status_ui()
         self.button.grid(row=1, column=0)
 
         self.speaking_controls_frame = customtkinter.CTkFrame(self)
@@ -25,12 +34,21 @@ class App(customtkinter.CTk):
         self.volume_slider = customtkinter.CTkSlider(self.speaking_controls_frame, from_=0, to=100)
         self.volume_slider.grid(row=1, column=1)
 
+        #todo delay
 
     def start_button(self):
-        new_session = ocr.OCR()
-        #TODO: how to start the OCR session
-        ocr.OCR.start()
+        self.ocr_engine.start()
+        self.reading_status = True
+        self.set_reading_status_ui()
 
-app = App()
-app.mainloop()
+    def stop_button(self):
+        self.ocr_engine.stop()
+        self.reading_status = False
+        self.set_reading_status_ui()
+
+    def set_reading_status_ui(self):
+        if self.reading_status:
+            self.button = customtkinter.CTkButton(self, text="Stop Reading", command=self.stop_button)
+        else:
+            self.button = customtkinter.CTkButton(self, text="Start Reading", command=self.start_button)
 
