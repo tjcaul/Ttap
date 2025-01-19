@@ -195,6 +195,12 @@ class OCR:
         """
         Apply substitutions to text to correct common OCR mistakes.
         """
+        text = text.copy().replace('\n', ' ')
+
+        # replace common mistakes for 'I'
+        if len(text) >= 2 and text[0] in ['|', '1', '!', 'l'] and text[1] == ' '
+            text[0] = 'I'
+
         return text.replace('|', 'I')
 
     def _thread_function(self) -> None:
