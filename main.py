@@ -7,8 +7,8 @@ def mainloop():
     POLL_RATE = 0.1
 
     global_que = deque()
-    speak_engine = SpeechClient(global_que)
-    ocr_engine = OCR(global_que, POLL_RATE)
+    speak_engine = SpeechClient(global_que, profile_time=True)
+    ocr_engine = OCR(global_que, POLL_RATE, profile_time=True)
     ui = App(ocr_engine, speak_engine)
     ui.mainloop()
 

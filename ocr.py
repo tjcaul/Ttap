@@ -163,7 +163,7 @@ class OCR:
 
         end = time.time()
         if self._profile_time:
-            print(f'\033[35m_get_text()\t\ttook \033[1m{end-start:.3f}s\033[0m')
+            print(f'\033[35m_get_text()\ttook \033[1m{end-start:.3f}s\033[0m')
 
         return text
 
@@ -212,7 +212,7 @@ class OCR:
             end = time.time()
 
             if self._profile_time:
-                print(f'\033[36m_smart_crop()\ttook \033[1m{end-start:.3f}s\033[0m')
+                print(f'\033[35m_smart_crop()\ttook \033[1m{end-start:.3f}s\033[0m')
 
             image = self._choose_best_image([image1, image2])
 
