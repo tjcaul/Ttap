@@ -1,10 +1,9 @@
 from typing import Optional
-from io import BytesIO
+import requests
 
 from collections import deque
 import time
 from threading import Thread, Event
-from gtts import gTTS
 from playsound3 import playsound
 
 """
@@ -25,6 +24,9 @@ class SpeechClient:
         """
         self._queue = queue
         self._profile_time = profile_time
+
+        self._speed = 0.3
+        self._pitch = 1.0
 
         self._thread = None
         self._kill_flag = Event()
@@ -68,21 +70,49 @@ class SpeechClient:
         self.stop()
         self.start(force=True)
 
-    def _speak(self, txt, lang='en'):
+    def set_speed(self, speed: float) -> None:
+        """
+        Set the speaking speed to a float between -1.0 and 1.0.
+        """
+        assert -1.0 <= speed <= 1.0
+        self._speed = speed
+
+    def set_pitch(self, pitch: float) -> None:
+        """
+        Set the speaking pitch to a float between -0.5 and 1.5.
+        """
+        assert -0.5 <= speed <= 1.5
+        self._pitch = pitch
+
+    def _speak(self, text, lang='en'):
         start = time.time()
-        with open("tmp.mp3", "wb") as temp_file:
-            gTTS(text=txt, lang=lang).write_to_fp(temp_io := BytesIO())
-            temp_file.write(temp_io.getbuffer())
+        with open("generated.mp3", "wb") as temp_file:
+            response = requests.post(
+              'https://api.v7.unrealspeech.com/stream',
+              headers = {
+                'Authorization' : 'Bearer OXGHJvEjRydWLdtGFZuf9RHh5b2fxmQoMjFaWuR3VP8V8ytfyBlElk'
+              },
+              json = {
+                'Text': text,
+                'VoiceId': 'Dan',
+                'Bitrate': '192k',
+                'Speed': self._speed,
+                'Pitch': self._pitch,
+                'Codec': 'libmp3lame',
+              }
+            )
+            temp_file.write(response.content)
+
         end1 = time.time()
-        playsound("tmp.mp3", True)
+        playsound("generated.mp3", True)
         end2 = time.time()
 
         if self._profile_time:
-            print(f'\033[36mgTTS()\t\ttook \033[1m{end1-start:.3f}s\033[0m')
-            print(f'\033[36m_speak()\ttook \033[1m{end2-start:.3f}s\033[0m')
+            print(f'\033[36mgenerate\t\ttook \033[1m{end1-start:.3f}s\033[0m')
+            print(f'\033[36mspeak\t\ttook \033[1m{end2-end1:.3f}s\033[0m')
 
     def _thread_function(self):
         while not self._kill_flag.is_set():
             while not self._queue:
-                time.sleep(0.1)
+                time.sleep(0.01)
             self._speak(self._queue.popleft())

@@ -167,7 +167,7 @@ class OCR:
 
         end = time.time()
         if self._profile_time:
-            print(f'\033[35m_get_text()\ttook \033[1m{end-start:.3f}s\033[0m')
+            print(f'\033[35m_get_text()\t\ttook \033[1m{end-start:.3f}s\033[0m')
 
         return text
 
@@ -199,7 +199,7 @@ class OCR:
 
         # replace common mistakes for 'I'
         if len(text) >= 2 and text[0] in ['|', '1', '!', 'l'] and text[1] == ' ':
-            text[0] = 'I'
+            text = 'I' + text[1:]
 
         return text.replace('|', 'I')
 
