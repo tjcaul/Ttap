@@ -1,7 +1,7 @@
 from typing import Optional
 
 from PIL import ImageGrab, Image
-from pytesseract import pytesseract
+import tesserocr
 from collections import deque
 import time
 from threading import Thread, Event
@@ -152,8 +152,8 @@ class OCR:
         # scale image down to speed up tesseract
         image.thumbnail((image.width // 2, image.height // 2))
 
-        # process with tesseract OCR
-        text = pytesseract.image_to_string(image).strip()
+        # process with tesserocr
+        text = tesserocr.image_to_text(image).strip()
 
         if self._save_screenshots:
             # save image to file for debugging
