@@ -1,5 +1,6 @@
 import customtkinter
 from ocr import OCR
+from screen_capture_ui import ScreenCaptureApp
 from speak import SpeechClient
 
 
@@ -11,8 +12,8 @@ class App(customtkinter.CTk):
 
     def __init__(self, ocr_engine: OCR, speech_engine: SpeechClient) -> None:
         super().__init__()
-        self.button = None
         customtkinter.set_default_color_theme("dark-blue")
+
         self.ocr_engine = ocr_engine
         self.speech_engine = speech_engine
         self.reading_status = False
@@ -42,8 +43,11 @@ class App(customtkinter.CTk):
             self.reading_status = False
             self.button.configure(text="Start Reading")
         else:
-            self.ocr_engine.start()
+            screen_shot_app = ScreenCaptureApp(self.ocr_engine)
+            screen_shot_app.mainloop()
+            print("hello")
             self.reading_status = True
             self.button.configure(text="Stop Reading")
+
 
 
