@@ -55,6 +55,14 @@ class OCR:
         If the main thread isn't running already, spawn a new thread to begin the OCR&queue process.
         If force=True is specified, start a new thread even if one already exists.
         """
+        if self._thread:
+            if force:
+                print('\033[32;1mOCR was already running; \033[33mforced to start again.\033[0m')
+            else:
+                print('\033[32;1mOCR started but was already running.\033[0m')
+        else:
+            print('\033[32;1mOCR started.\033[0m')
+
         if (not self._thread) or force:
             self._kill_flag.clear()
             self._thread = Thread(target=self._thread_function)
@@ -65,13 +73,18 @@ class OCR:
         If the main thread is running, gracefully stop it.
         """
         if self._thread:
+            print('\033[31;1mOCR stopped.\033[0m')
             self._kill_flag.set()
             self._thread.join()
+            self._thread = None
+        else:
+            print('\033[31;1mOCR stopped but it wasn\'t running.\033[0m')
 
     def restart(self) -> None:
         """
         Forcefully restart the thread in case of a crash.
         """
+        print('\033[33;1mOCR restarted.\033[0m')
         self.stop()
         self.start(force=True)
 
@@ -209,7 +222,6 @@ class OCR:
                 if text != last_text and text != "" and text is not None:
                     last_text = text
                     self._queue.append(self._cleanup_text(text))
-                    print('\7')
             else:
                 last_text = None
 
