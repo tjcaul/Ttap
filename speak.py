@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 import requests
 
@@ -5,6 +6,7 @@ from collections import deque
 import time
 from threading import Thread, Event
 from playsound3 import playsound
+from dotenv import load_dotenv
 
 """
 Class that runs a speech process in the background, speaking each string that appears in the queue.
@@ -15,7 +17,7 @@ class SpeechClient:
 
     _thread: Optional[Thread]
     _kill_flag: Event
-
+    _api_key: str
 
     def __init__(self, queue: deque, profile_time: bool = False) -> None:
         """
@@ -30,6 +32,9 @@ class SpeechClient:
 
         self._thread = None
         self._kill_flag = Event()
+
+        load_dotenv()
+        self._api_key = os.getenv("UNREAL_SPEECH_API_KEY")
 
     def start(self, force: bool = False) -> None:
         """
@@ -81,7 +86,7 @@ class SpeechClient:
         """
         Set the speaking pitch to a float between -0.5 and 1.5.
         """
-        assert -0.5 <= speed <= 1.5
+        assert -0.5 <= pitch <= 1.5
         self._pitch = pitch
 
     def _speak(self, text, lang='en'):
@@ -90,7 +95,7 @@ class SpeechClient:
             response = requests.post(
               'https://api.v7.unrealspeech.com/stream',
               headers = {
-                'Authorization' : 'Bearer OXGHJvEjRydWLdtGFZuf9RHh5b2fxmQoMjFaWuR3VP8V8ytfyBlElk'
+                'Authorization' : f'Bearer {self._api_key}'
               },
               json = {
                 'Text': text,

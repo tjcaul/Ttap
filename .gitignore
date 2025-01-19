@@ -1,0 +1,5 @@
+.env
+generated.mp3
+screenshots/**
+.idea/**
+__pycache__/**
