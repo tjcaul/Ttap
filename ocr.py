@@ -47,7 +47,7 @@ class OCR:
         - 0 <= x1 < x2
         - 0 <= y1 < y2
         """
-        assert 0 <= x1 < x2 && 0 <= y1 < y2, "Invalid bounding box"
+        assert 0 <= x1 < x2 and 0 <= y1 < y2, "Invalid bounding box"
         self._bounding_box = (x1, y1, x2, y2)
 
     def start(self, force: bool = False) -> None:
