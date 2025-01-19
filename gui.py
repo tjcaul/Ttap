@@ -1,5 +1,4 @@
 import customtkinter
-from librosa.effects import pitch_shift
 
 from ocr import OCR
 from screen_capture_ui import ScreenCaptureApp
