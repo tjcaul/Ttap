@@ -209,6 +209,7 @@ class OCR:
                 if text != last_text and text != "" and text is not None:
                     last_text = text
                     self._queue.append(self._cleanup_text(text))
+                    print('\7')
             else:
                 last_text = None
 
