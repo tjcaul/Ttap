@@ -1,4 +1,6 @@
 import customtkinter
+from librosa.effects import pitch_shift
+
 from ocr import OCR
 from screen_capture_ui import ScreenCaptureApp
 from speak import SpeechClient
@@ -34,13 +36,13 @@ class App(customtkinter.CTk):
 
         self.pitch_slider_label = customtkinter.CTkLabel(self.speaking_controls_frame, text="Pitch")
         self.pitch_slider_label.grid(row=2, column=1)
-        self.pitch_slider = customtkinter.CTkSlider(self.speaking_controls_frame, from_=-0.5, to=1.5, number_of_steps=20)
+        self.pitch_slider = customtkinter.CTkSlider(self.speaking_controls_frame, from_=-0.5, to=1.5, number_of_steps=20, command=self.pitch())
         self.pitch_slider.grid(row=3, column=1)
         self.pitch_slider.set(1.0)
 
         self.rate_slider_label = customtkinter.CTkLabel(self.speaking_controls_frame, text="Rate")
         self.rate_slider_label.grid(row=4, column=1)
-        self.rate_slider = customtkinter.CTkSlider(self.speaking_controls_frame, from_=-1, to=1, number_of_steps=20)
+        self.rate_slider = customtkinter.CTkSlider(self.speaking_controls_frame, from_=-1, to=1, number_of_steps=20, command=self.rate())
         self.rate_slider.grid(row=5, column=1)
         self.rate_slider.set(0.3)
 
@@ -71,6 +73,12 @@ class App(customtkinter.CTk):
             #screen_shot_app.mainloop()
             self.reading_status = True
             self.button.configure(text="Stop Reading")
+
+    def pitch(self):
+        self.speech_engine.set_pitch(self.pitch_slider.get())
+
+    def rate(self):
+        self.speech_engine.set_speed(self.rate_slider.get())
 
 
 
