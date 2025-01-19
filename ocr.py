@@ -5,18 +5,21 @@ from pytesseract import pytesseract
 from collections import deque
 import time
 from threading import Thread, Event
+from random import randint
 
 """
 Class that runs an OCR process in the background, adding each unique string it finds to the queue.
 """
 class OCR:
     SCROLLBAR_COLOURS = [(234, 51, 35), (212, 212, 212), (128, 128, 128)]
+    SCROLLBAR_THICKNESS = 17
     BACKGROUND_COLOUR = (0, 0, 0)
 
     _thread: Optional[Thread]
     _queue: deque
     _poll_time: float
     _kill_flag: Event
+    _bounding_box: tuple[int, int, int, int]
 
     def __init__(self, queue, poll_time) -> None:
         """
@@ -27,6 +30,13 @@ class OCR:
         self._poll_time = poll_time
         self._thread = None
         self._kill_flag = Event()
+        self._bounding_box = (500, 1300, 2880-500, 1800-150)
+
+    def set_bounding_box(self, x1: int, y1: int, x2: int, y2: int) -> None:
+        """
+        Set the bounding box for capturing subtitles.
+        """
+        self._bounding_box = (x1, y1, x2, y2)
 
     @staticmethod
     def _colour_close(a: tuple[int, int, int], b: tuple[int, int, int], radius: int):
@@ -36,21 +46,36 @@ class OCR:
         actual_radius_squared = (a[0] - b[0])**2 + (a[1] - b[1])**2 + (a[2] - b[2])**2
         return actual_radius_squared <= radius ** 2
 
+    def _find_scrollbar(self, image: Image) -> str:
+        """
+        Return the y-coordinate of the top of the scroll bar within the image.
+        """
+        x_coords = [x for x in range(0, image.width, image.width // 5)]
+        y_coords = []
+        for x in x_coords:
+            found_scrollbar = False
+            for y in range(image.height - 1, -1, -1):
+                colour = image.getpixel((x, y))
+                if any(self._colour_close(colour, scrollbar_colour, 3) for scrollbar_colour in self.SCROLLBAR_COLOURS):
+                    y_coords.append(y)
+                    found_scrollbar = True
+                    break
+            if not found_scrollbar:
+                # no scrollbar found at this x coordinate; scrollbar likely doesn't exist
+                print("No scrollbar")
+                return image.height
+        return max(max(y_coords, key=y_coords.count) - self.SCROLLBAR_THICKNESS, 0)
+
     def _smart_crop(self, image: Image) -> str:
         """
         Crop the image to contain only subtitles.
         """
         # first refinement: crop to a fixed box
-        image = image.crop((500, 1300, 2880-500, 1800-150))
+        image = image.crop(self._bounding_box)
 
-        # find scroll / progress bar if it exists
-        x = image.width // 2
-        for y in range(image.height - 4):
-            colour_stripe = [image.getpixel((x, y + i)) for i in range(4)]
-            if all(any(self._colour_close(colour, scrollbar_colour, 3) for scrollbar_colour in self.SCROLLBAR_COLOURS) for colour in colour_stripe):
-                # crop out the scroll bar
-                return image.crop((0, 0, image.width - 1, y - 1))
-        return image  # no further cropping needed
+        # crop out the scroll bar
+        scrollbar_y = self._find_scrollbar(image)
+        return image.crop((0, 0, image.width - 1, scrollbar_y))
 
     @staticmethod
     def _brightness(colour: tuple[int, ...]) -> int:
@@ -74,8 +99,8 @@ class OCR:
         text = pytesseract.image_to_string(image).strip()
 
         # save image to file for debugging
-        # path = f"ss/{randint(0, 1000000)}.png"
-        # image.save(path)
+        path = f"ss/{randint(0, 1000000)}.png"
+        image.save(path)
         return text
 
     def _choose_best_image(self, images: list[Image]) -> Image:
