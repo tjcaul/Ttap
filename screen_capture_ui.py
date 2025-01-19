@@ -44,7 +44,7 @@ class ScreenCaptureApp(tk.Tk):
         if y1 > y2: y1, y2 = y2, y1
 
         # main and gui and instructions
-        self.ocr_engine.set_bounding_box(x1, y1, x2, y2)
+        self.ocr_engine.set_bounding_box(x1 * 2, y1 * 2, x2 * 2, y2 * 2)
         self.quit()
 
 

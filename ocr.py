@@ -186,9 +186,9 @@ class OCR:
                 brightest_image = image
                 max_brightness = brightness
 
-        if max_brightness > 250:
-            return brightest_image
-        return None
+        #if max_brightness > 250:
+        return brightest_image
+        # return None
 
     @staticmethod
     def _cleanup_text(text: str) -> str:

@@ -91,6 +91,7 @@ class SpeechClient:
 
     def _speak(self, text, lang='en'):
         start = time.time()
+        print(f'generating with speed={self._speed}, pitch={self._pitch}, text="{text}"')
         with open("generated.mp3", "wb") as temp_file:
             response = requests.post(
               'https://api.v7.unrealspeech.com/stream',

@@ -8,7 +8,7 @@ def main():
 
     global_que = deque()
     speak_engine = SpeechClient(global_que, profile_time=True)
-    ocr_engine = OCR(global_que, POLL_RATE, profile_time=True)
+    ocr_engine = OCR(global_que, POLL_RATE, profile_time=True, save_screenshots=True)
     ui = App(ocr_engine, speak_engine)
     ui.mainloop()
 

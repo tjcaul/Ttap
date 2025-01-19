@@ -64,7 +64,6 @@ class App(customtkinter.CTk):
             self.ocr_engine.stop()
             self.speech_engine.stop()
         else:
-            self.ocr_engine.start()
             self.speech_engine.start()
 
             screen_shot_app = ScreenCaptureApp(self.ocr_engine)
@@ -73,4 +72,5 @@ class App(customtkinter.CTk):
             self.reading_status = True
             self.button.configure(text="Stop Reading")
 
+            # self.withdraw()
             self.ocr_engine.start()
