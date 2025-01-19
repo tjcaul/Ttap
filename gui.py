@@ -35,20 +35,19 @@ class App(customtkinter.CTk):
         self.volume_slider = customtkinter.CTkSlider(self.speaking_controls_frame, from_=0, to=100)
         self.volume_slider.grid(row=1, column=1)
 
-    # app takes time to load
-
     def start_stop_button(self):
         if self.reading_status:
-            self.ocr_engine.stop()
             self.reading_status = False
             self.button.configure(text="Start Reading")
+            self.ocr_engine.stop()
+            self.speech_engine.stop()
         else:
-            self.ocr_engine.start()
             self.speech_engine.start()
-            #screen_shot_app = ScreenCaptureApp(self.ocr_engine)
-            #screen_shot_app.mainloop()
+
+            screen_shot_app = ScreenCaptureApp(self.ocr_engine)
+            screen_shot_app.mainloop()
+
             self.reading_status = True
             self.button.configure(text="Stop Reading")
 
-
-
+            self.ocr_engine.start()

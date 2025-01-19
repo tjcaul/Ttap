@@ -17,7 +17,6 @@ class ScreenCaptureApp(tk.Tk):
         self.geometry(f"{screen_width}x{screen_height}")
         self.attributes("-alpha", 0.5)  # Make the window transparent
         self.configure(bg='black')
-        # self.overrideredirect(True)
 
         self.start_x = None
         self.start_y = None
@@ -44,23 +43,9 @@ class ScreenCaptureApp(tk.Tk):
         if x1 > x2: x1, x2 = x2, x1
         if y1 > y2: y1, y2 = y2, y1
 
-        #screenshot = ImageGrab.grab(bbox=(x1, y1, x2, y2))
         # main and gui and instructions
-        #self.save_screenshot(screenshot)
         self.ocr_engine.set_bounding_box(x1, y1, x2, y2)
-        self.ocr_engine.start()
-        self.destroy()
-        print("hello")
-        return
-
-    # def save_screenshot(self, image):
-    #     file_path = filedialog.asksaveasfilename(defaultextension=".png",
-    #                                              filetypes=[("PNG files", "*.png"),
-    #                                                         ("JPEG files", "*.jpg"),
-    #                                                         ("All Files", "*.*")])
-    #     if file_path:
-    #         image.save(file_path)
-
+        self.quit()
 
 
 if __name__ == "__main__":
