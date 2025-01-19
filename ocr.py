@@ -6,6 +6,7 @@ from collections import deque
 import time
 from threading import Thread, Event
 from random import randint
+import os
 
 """
 Class that runs an OCR process in the background, adding each unique string it finds to the queue.
@@ -15,31 +16,70 @@ class OCR:
     SCROLLBAR_THICKNESS = 17
     BACKGROUND_COLOUR = (0, 0, 0)
 
-    _thread: Optional[Thread]
     _queue: deque
     _poll_time: float
+    _save_screenshots: bool
+    _profile_time: bool
+
+    _thread: Optional[Thread]
     _kill_flag: Event
+
     _bounding_box: tuple[int, int, int, int]
 
-    def __init__(self, queue, poll_time) -> None:
+    def __init__(self, queue: deque, poll_time: float, save_screenshots: bool = False, profile_time: bool = False) -> None:
         """
         Initialize the OCR system to write into the given queue. The screen will be captured every
         poll_time seconds. Too slow, and it'll miss subtitles; too fast, and it'll lag the system.
         """
         self._queue = queue
         self._poll_time = poll_time
+        self._save_screenshots = save_screenshots
+        self._profile_time = profile_time
+
         self._thread = None
         self._kill_flag = Event()
-        self._bounding_box = (500, 1300, 2880-500, 1800-150)
+        self._bounding_box = (500, 300, 2880-500, 1800-150)
 
     def set_bounding_box(self, x1: int, y1: int, x2: int, y2: int) -> None:
         """
         Set the bounding box for capturing subtitles.
+        Preconditions:
+        - 0 <= x1 < x2
+        - 0 <= y1 < y2
         """
+        assert 0 <= x1 < x2 && 0 <= y1 < y2, "Invalid bounding box"
         self._bounding_box = (x1, y1, x2, y2)
 
+    def start(self, force: bool = False) -> None:
+        """
+        If the main thread isn't running already, spawn a new thread to begin the OCR&queue process.
+        If force=True is specified, start a new thread even if one already exists.
+        """
+        if (not self._thread) or force:
+            self._kill_flag.clear()
+            self._thread = Thread(target=self._thread_function)
+            self._thread.start()
+
+    def stop(self) -> None:
+        """
+        If the main thread is running, gracefully stop it.
+        """
+        if self._thread:
+            self._kill_flag.set()
+            self._thread.join()
+
+    def restart(self) -> None:
+        """
+        Forcefully restart the thread in case of a crash.
+        """
+        self.stop()
+        self.start(force=True)
+
+
+    ### PRIVATE METHODS ###
+
     @staticmethod
-    def _colour_close(a: tuple[int, int, int], b: tuple[int, int, int], radius: int):
+    def _colour_close(a: tuple[int, int, int], b: tuple[int, int, int], radius: int) -> bool:
         """
         Return whether two colours are within the given radius when interpreted as 3D vectors.
         """
@@ -62,7 +102,6 @@ class OCR:
                     break
             if not found_scrollbar:
                 # no scrollbar found at this x coordinate; scrollbar likely doesn't exist
-                print("No scrollbar")
                 return image.height
         return max(max(y_coords, key=y_coords.count) - self.SCROLLBAR_THICKNESS, 0)
 
@@ -91,16 +130,28 @@ class OCR:
         extrema = image.getextrema()
         return self._brightness(tuple(int(band[1]) for band in extrema))
 
-    @staticmethod
-    def _get_text(image: Image) -> str:
+    def _get_text(self, image: Image) -> str:
         """
         Extract text from a cropped image.
         """
+        start = time.time()
+
+        # scale image down to speed up tesseract
+        image.thumbnail((image.width // 2, image.height // 2))
+
+        # process with tesseract OCR
         text = pytesseract.image_to_string(image).strip()
 
-        # save image to file for debugging
-        path = f"ss/{randint(0, 1000000)}.png"
-        image.save(path)
+        if self._save_screenshots:
+            # save image to file for debugging
+            os.makedirs("screenshots", exist_ok=True)
+            path = f"screenshots/{randint(0, 1000000)}.png"
+            image.save(path)
+
+        end = time.time()
+        if self._profile_time:
+            print(f'\033[35m_get_text()\t\ttook \033[1m{end-start:.3f}s\033[0m')
+
         return text
 
     def _choose_best_image(self, images: list[Image]) -> Image:
@@ -129,7 +180,7 @@ class OCR:
         """
         return text.replace('|', 'I')
 
-    def _thread_function(self):
+    def _thread_function(self) -> None:
         """
         Continuously OCR the screen. When the subtitles change, enqueue the new subtitle text.
         Terminates when self._kill_flag gets set to allow for graceful shutdown.
@@ -142,8 +193,13 @@ class OCR:
             time.sleep(0.05)
             image2 = ImageGrab.grab()
 
+            start = time.time()
             image1 = self._smart_crop(image1)
             image2 = self._smart_crop(image2)
+            end = time.time()
+
+            if self._profile_time:
+                print(f'\033[36m_smart_crop()\ttook \033[1m{end-start:.3f}s\033[0m')
 
             image = self._choose_best_image([image1, image2])
 
@@ -159,48 +215,21 @@ class OCR:
             time.sleep(self._poll_time)
 
 
-    def start(self, force: bool = False) -> None:
-        """
-        If the main thread isn't running already, spawn a new thread to begin the OCR&queue process.
-        If force=True is specified, start a new thread even if one already exists.
-        """
-        if (not self._thread) or force:
-            self._kill_flag.clear()
-            self._thread = Thread(target=self._thread_function)
-            self._thread.start()
-
-    def stop(self) -> None:
-        """
-        If the main thread is running, gracefully stop it.
-        """
-        if self._thread:
-            self._kill_flag.set()
-            self._thread.join()
-
-    def restart(self) -> None:
-        """
-        Forcefully restart the thread in case of a crash.
-        """
-        self.stop()
-        self.start(force=True)
-
-
-def demo(max_lines: int = 0):
+def demo(max_lines: int = 0) -> None:
     """
     Run a demo, printing text as it appears in the queue.
     Can optionally stop after reading a certain number of lines of text.
     """
     queue = deque()
-    ocr = OCR(queue, poll_time=0.1)
+    ocr = OCR(queue, poll_time=0.1, save_screenshots=False, profile_time=False)
     ocr.start()
-    #newspeak.start_engine()
 
     lines = 0
     while max_lines <= 0 or lines < max_lines:
         if queue:
-            print(queue.popleft())
+            print(f'\033[7;1m"{queue.popleft()}"\033[0m')
             lines += 1
         time.sleep(0.1)
 
 if __name__ == '__main__':
-    demo(5)
+    demo()
