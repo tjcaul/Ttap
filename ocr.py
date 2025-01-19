@@ -23,6 +23,7 @@ class OCR:
 
     _thread: Optional[Thread]
     _kill_flag: Event
+    _tesseract: tesserocr.PyTessBaseAPI
 
     _bounding_box: tuple[int, int, int, int]
 
@@ -35,10 +36,12 @@ class OCR:
         self._poll_time = poll_time
         self._save_screenshots = save_screenshots
         self._profile_time = profile_time
+        
+        self._tesseract = tesserocr.PyTessBaseAPI()
 
         self._thread = None
         self._kill_flag = Event()
-        self._bounding_box = (500, 300, 2880-500, 1800-150)
+        self._bounding_box = (800, 300, 2880-800, 1800-150)
 
     def set_bounding_box(self, x1: int, y1: int, x2: int, y2: int) -> None:
         """
@@ -153,7 +156,8 @@ class OCR:
         image.thumbnail((image.width // 2, image.height // 2))
 
         # process with tesserocr
-        text = tesserocr.image_to_text(image).strip()
+        self._tesseract.SetImage(image)
+        text = self._tesseract.GetUTF8Text()
 
         if self._save_screenshots:
             # save image to file for debugging
@@ -221,6 +225,7 @@ class OCR:
 
                 if text != last_text and text != "" and text is not None:
                     last_text = text
+                    #print("\033[31mqueueing " + text + "\033[0m")
                     self._queue.append(self._cleanup_text(text))
             else:
                 last_text = None
