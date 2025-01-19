@@ -33,7 +33,7 @@ $ pip3 install -r requirements.txt
 $ cp .env-template .env
 $ vim .env
 ```
-Add your Unreal Speech API key
+Add your Unreal Speech API key to the file.
 
 **Running**
 ```commandline
