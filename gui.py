@@ -43,9 +43,9 @@ class App(customtkinter.CTk):
             self.reading_status = False
             self.button.configure(text="Start Reading")
         else:
-            screen_shot_app = ScreenCaptureApp(self.ocr_engine)
-            screen_shot_app.mainloop()
-            print("hello")
+            self.ocr_engine.start()
+            #screen_shot_app = ScreenCaptureApp(self.ocr_engine)
+            #screen_shot_app.mainloop()
             self.reading_status = True
             self.button.configure(text="Stop Reading")
 

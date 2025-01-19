@@ -1,7 +1,4 @@
 import tkinter as tk
-from tkinter import filedialog
-import pyautogui
-from PIL import ImageGrab
 
 from ocr import OCR
 
@@ -52,8 +49,9 @@ class ScreenCaptureApp(tk.Tk):
         #self.save_screenshot(screenshot)
         self.ocr_engine.set_bounding_box(x1, y1, x2, y2)
         self.ocr_engine.start()
-        print("hello")
         self.destroy()
+        print("hello")
+        return
 
     # def save_screenshot(self, image):
     #     file_path = filedialog.asksaveasfilename(defaultextension=".png",
