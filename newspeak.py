@@ -36,7 +36,7 @@ def speech_digester_loop(sayQ):
     engine.endLoop()
 
 sayQ=None
-def output_text(text,waitFinish=False):
+def output_text(text,waitFinish=True):
     global sayQ
     print (text)
     sayQ.put((text,waitFinish))

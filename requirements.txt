@@ -3,5 +3,7 @@ pytesseract~=0.3.13
 pyttsx3~=2.98
 
 multiprocess
+gtts
+playsound3
 
 customtkinter~=5.2.2
