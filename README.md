@@ -4,7 +4,7 @@
 
 ## Why?
 
-Many foreign films have English subtitles but no English audio. Subtitles aren't a viable or enjoyable option for any people.
+Many foreign films have English subtitles but no English audio. Subtitles aren't a viable or enjoyable option for many people.
 TTAP makes formerly inaccessible media accessible for people with reading/vision impairments, when audio is unclear or there is no dubbing, or for people who just like their subtitles read out.
 
 ## What?
