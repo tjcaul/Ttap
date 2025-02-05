@@ -30,7 +30,7 @@ $ cat other-requirements.txt
 Then use your system's package manager to install the listed packages.
 ```commandline
 $ pip3 install -r requirements.txt
-$ cp .env-template .env
+$ cp .env.template .env
 $ vim .env
 ```
 Add your Unreal Speech API key to the file.
